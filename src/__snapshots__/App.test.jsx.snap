@@ -1,0 +1,497 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`App component matches snapshot 1`] = `
+<div>
+  <h1>
+    Othello
+  </h1>
+  <div
+    style={
+      Object {
+        "display": "flex",
+      }
+    }
+  >
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+  </div>
+  <div
+    style={
+      Object {
+        "display": "flex",
+      }
+    }
+  >
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+  </div>
+  <div
+    style={
+      Object {
+        "display": "flex",
+      }
+    }
+  >
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      onClick={[Function]}
+      type="button"
+    >
+      <div
+        className="possibleMove"
+      />
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+  </div>
+  <div
+    style={
+      Object {
+        "display": "flex",
+      }
+    }
+  >
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      onClick={[Function]}
+      type="button"
+    >
+      <div
+        className="possibleMove"
+      />
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      <div
+        className="piece"
+        style={
+          Object {
+            "backgroundColor": "#FFF",
+          }
+        }
+      />
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      <div
+        className="piece"
+        style={
+          Object {
+            "backgroundColor": "#000",
+          }
+        }
+      />
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+  </div>
+  <div
+    style={
+      Object {
+        "display": "flex",
+      }
+    }
+  >
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      <div
+        className="piece"
+        style={
+          Object {
+            "backgroundColor": "#000",
+          }
+        }
+      />
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      <div
+        className="piece"
+        style={
+          Object {
+            "backgroundColor": "#FFF",
+          }
+        }
+      />
+    </button>
+    <button
+      className="square"
+      onClick={[Function]}
+      type="button"
+    >
+      <div
+        className="possibleMove"
+      />
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+  </div>
+  <div
+    style={
+      Object {
+        "display": "flex",
+      }
+    }
+  >
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      onClick={[Function]}
+      type="button"
+    >
+      <div
+        className="possibleMove"
+      />
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+  </div>
+  <div
+    style={
+      Object {
+        "display": "flex",
+      }
+    }
+  >
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+  </div>
+  <div
+    style={
+      Object {
+        "display": "flex",
+      }
+    }
+  >
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+    <button
+      className="square"
+      type="button"
+    >
+      
+    </button>
+  </div>
+</div>
+`;

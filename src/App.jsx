@@ -128,8 +128,6 @@ export default class App extends Component {
     }
   }
 
-  getOpponent = (player) => (player === white ? black : white)
-
   canPlay = (grid, player) => this.possibleMoves(grid, player).length > 0
 
   // returns all the possible moves from given player
