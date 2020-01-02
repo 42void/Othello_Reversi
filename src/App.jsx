@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import axios from 'axios';
 import Piece from './components/Piece';
 import './style.scss';
 
@@ -124,9 +125,26 @@ export default class App extends Component {
       toChange.forEach(([y, x]) => { grid[y][x] = player; });
       player = this.getOpponent(player);
       // Save new state
-      this.setState({ grid, player });
+      this.setState({ grid, player }, () => {
+        this.saveGame();
+      });
     }
   }
+
+  saveGame = () => {
+    const { player, grid } = this.state;
+    axios.post('//localhost:9000/saveGame', {
+      currentPlayer: player,
+      grid,
+    })
+      .then((response) => {
+        console.log('saveGame', { response });
+      })
+      .catch((error) => {
+        console.error('saveGame', { error });
+      });
+  }
+
 
   canPlay = (grid, player) => this.possibleMoves(grid, player).length > 0
 
