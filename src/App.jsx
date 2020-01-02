@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import axios from 'axios';
 import Piece from './components/Piece';
 import './style.scss';
+import blackPiece from '../p_black.png';
+import whitePiece from '../p_white.png';
 
 export const directions = [
   [0, 1], [0, -1], [1, 0], [-1, 0],
@@ -26,6 +28,7 @@ export default class App extends Component {
         [0, 0, 0, 0, 0, 0, 0, 0],
       ],
       player: black,
+      msg: '',
     };
   }
 
@@ -116,16 +119,45 @@ export default class App extends Component {
 
   getOpponent = (player) => (player === white ? black : white)
 
+  victoryMessage = (grid) => {
+    const { scoreWhite, scoreBlack } = this.getScore(grid);
+    let winner = 'Draw.';
+    if (scoreWhite > scoreBlack) winner = 'White wins!';
+    if (scoreWhite < scoreBlack) winner = 'Black wins!';
+    return `End of game. ${winner}`;
+  }
+
+  getScore = (grid) => {
+    let scoreBlack = 0;
+    let scoreWhite = 0;
+    for (let y = 0; y < 8; y += 1) {
+      for (let x = 0; x < 8; x += 1) {
+        if (grid[y][x] === black) scoreBlack += 1;
+        if (grid[y][x] === white) scoreWhite += 1;
+      }
+    }
+    return { scoreWhite, scoreBlack };
+  }
+
+
   reverseAndAddPiecesIfValid = (coord) => {
     const { grid } = this.state;
     let { player } = this.state;
+    let msg = '';
     const toChange = this.toBeChangedAllDirections(grid, player, coord);
     if (toChange.length > 0) {
       // Play the given move
       toChange.forEach(([y, x]) => { grid[y][x] = player; });
       player = this.getOpponent(player);
+      // Check that the opponent can play
+      if (!this.canPlay(grid, player)) {
+        msg = `${this.playerName(player)} cannot play, skipping turn...`;
+        player = this.getOpponent(player);
+      }
+      // Check victory
+      if (this.gameEnded(grid)) msg = this.victoryMessage(grid);
       // Save new state
-      this.setState({ grid, player }, () => {
+      this.setState({ grid, player, msg }, () => {
         this.saveGame();
       });
     }
@@ -148,6 +180,8 @@ export default class App extends Component {
 
   canPlay = (grid, player) => this.possibleMoves(grid, player).length > 0
 
+  gameEnded = (grid) => !this.canPlay(grid, black) && !this.canPlay(grid, white);
+
   // returns all the possible moves from given player
   possibleMoves = (grid, player) => {
     const moves = [];
@@ -161,12 +195,38 @@ export default class App extends Component {
     return moves;
   }
 
+  playerName = (num) => (num === 1 ? 'BLACK' : 'WHITE')
 
   render() {
+    const { msg, grid, player } = this.state;
+    const { scoreWhite, scoreBlack } = this.getScore(grid);
     return (
       <div>
         <h1>Othello</h1>
+        <div style={{ display: 'flex' }}>
+          <span>
+Current
+            {' '}
+player:
+            {' '}
+            {this.playerName(player)}
+          </span>
+          <span style={{ marginLeft: '.5rem' }}>
+            {this.playerName(player) === 'BLACK' ? <img alt="black piece" height="20px" width="20px" src={blackPiece} />
+              : <img alt="black piece" height="20px" width="20px" src={whitePiece} />}
+          </span>
+        </div>
         {this.createGrid()}
+        <p>
+          Black:
+          {' '}
+          {scoreBlack}
+          {' '}
+          White:
+          {' '}
+          {scoreWhite}
+        </p>
+        <p>{msg}</p>
       </div>
     );
   }

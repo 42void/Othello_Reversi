@@ -12,6 +12,35 @@ exports[`App component matches snapshot 1`] = `
       }
     }
   >
+    <span>
+      Current
+       
+      player:
+       
+      BLACK
+    </span>
+    <span
+      style={
+        Object {
+          "marginLeft": ".5rem",
+        }
+      }
+    >
+      <img
+        alt="black piece"
+        height="20px"
+        src="p_black.png"
+        width="20px"
+      />
+    </span>
+  </div>
+  <div
+    style={
+      Object {
+        "display": "flex",
+      }
+    }
+  >
     <button
       className="square"
       type="button"
@@ -493,5 +522,17 @@ exports[`App component matches snapshot 1`] = `
       
     </button>
   </div>
+  <p>
+    Black:
+     
+    2
+     
+    White:
+     
+    2
+  </p>
+  <p>
+    
+  </p>
 </div>
 `;
