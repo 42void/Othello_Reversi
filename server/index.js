@@ -13,6 +13,13 @@ const io = require('socket.io')(http, { origins: '*:*' });
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+const open = require('open');
+
+(async () => {
+  // Opens the url in the default browser
+  await open('http://localhost:9000');
+})();
+
 const sqlite3 = require('sqlite3').verbose();
 
 const DB_FILE = process.env.DB_FILE || 'othello.db';
