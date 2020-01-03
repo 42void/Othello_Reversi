@@ -538,7 +538,9 @@ exports[`App component matches snapshot 1`] = `
      
     2
   </p>
-  <p>
+  <p
+    className="message"
+  >
     
   </p>
 </div>

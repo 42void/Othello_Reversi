@@ -4,6 +4,7 @@ import React from 'react';
 import Enzyme, { shallow, mount } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
 import axios from 'axios';
+import WS from 'jest-websocket-mock';
 import App, { directions } from './App';
 
 Enzyme.configure({ adapter: new Adapter() });
@@ -110,8 +111,18 @@ describe('App component', () => {
     expect(app.inGrid(4, -1)).toEqual(false);
     expect(app.inGrid(8, 8)).toEqual(false);
   });
+  it('createGrid should return a array', () => {
+    expect(app.createGrid()).toBeType('array');
+  });
   it('canPlay should return a boolean', () => {
     expect(app.canPlay(wrapper.state().grid, 1)).toBeType('boolean');
+  });
+  it('victoryMessage should return a string', () => {
+    expect(app.victoryMessage(wrapper.state().grid)).toBeType('string');
+  });
+  it('getScore should return a object', () => {
+    expect(app.getScore(wrapper.state().grid)).toBeType('object');
+    expect(app.getScore(wrapper.state().grid)).toEqual({ scoreWhite: 2, scoreBlack: 2 });
   });
   it('should make a post request', () => {
     const postSpy = jest.spyOn(axios, 'post');
@@ -119,5 +130,42 @@ describe('App component', () => {
       <App />,
     );
     expect(postSpy).toBeCalled();
+  });
+  it('should display the message in corresponding <p> if state.msg contains a message', () => {
+    const appComponent = shallow(<App />);
+    appComponent.setState({ msg: 'HEY' });
+    expect(appComponent.containsMatchingElement(<p className="message">HEY</p>)).toEqual(true);
+  });
+});
+
+test('the server keeps track of received messages', async () => {
+  const server = new WS('ws://localhost:4242');
+  const client = new WebSocket('ws://localhost:4242');
+
+  await server.connected;
+  client.send('hello');
+  await expect(server).toReceiveMessage('hello');
+  expect(server).toHaveReceivedMessages(['hello']);
+});
+
+test('the mock server sends messages to connected clients', async () => {
+  const server = new WS('ws://localhost:w');
+  const client1 = new WebSocket('ws://localhost:w');
+  await server.connected;
+  const client2 = new WebSocket('ws://localhost:w');
+  await server.connected;
+
+  const messages = { client1: [], client2: [] };
+  client1.onmessage = (e) => {
+    messages.client1.push(e.data);
+  };
+  client2.onmessage = (e) => {
+    messages.client2.push(e.data);
+  };
+
+  server.send('hello everyone');
+  expect(messages).toEqual({
+    client1: ['hello everyone'],
+    client2: ['hello everyone'],
   });
 });

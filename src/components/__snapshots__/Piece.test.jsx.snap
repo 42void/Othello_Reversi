@@ -1,0 +1,12 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Piece component matches snapshot 1`] = `
+<div
+  className="piece"
+  style={
+    Object {
+      "backgroundColor": "#000",
+    }
+  }
+/>
+`;

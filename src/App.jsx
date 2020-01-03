@@ -300,7 +300,7 @@ player:
           {' '}
           {scoreWhite}
         </p>
-        <p>{msg}</p>
+        <p className="message">{msg}</p>
       </div>
     );
   }
