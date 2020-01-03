@@ -32,6 +32,19 @@ export default class App extends Component {
     };
   }
 
+  componentDidMount() {
+    document.addEventListener('keydown', (e) => {
+      if (e.key.toString() === 'r') this.playRandomMove();
+    });
+  }
+
+  playRandomMove = () => {
+    const { grid, player } = this.state;
+    const moves = this.possibleMoves(grid, player);
+    const randomMove = moves[Math.floor(Math.random() * moves.length)];
+    if (randomMove) this.reverseAndAddPiecesIfValid(randomMove);
+  }
+
   createGrid = () => {
     const { grid, player } = this.state;
     const gridDisplay = [];
