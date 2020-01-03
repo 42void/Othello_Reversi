@@ -7,7 +7,7 @@ const uniqid = require('uniqid');
 
 const app = express();
 app.use(cors());
-// app.use(express.static(`${__dirname}/../dist`));
+app.use(express.static(`${__dirname}/../dist`));
 const http = require('http').createServer(app);
 const io = require('socket.io')(http, { origins: '*:*' });
 
