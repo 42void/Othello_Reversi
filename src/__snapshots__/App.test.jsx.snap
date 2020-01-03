@@ -5,6 +5,13 @@ exports[`App component matches snapshot 1`] = `
   <h1>
     Othello
   </h1>
+  <p>
+    <a
+      href="."
+    >
+      Start a new game
+    </a>
+  </p>
   <div
     style={
       Object {

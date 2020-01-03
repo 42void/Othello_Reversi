@@ -1,9 +1,12 @@
 import React, { Component } from 'react';
 import axios from 'axios';
+import socketIOClient from 'socket.io-client';
 import Piece from './components/Piece';
 import './style.scss';
 import blackPiece from '../p_black.png';
 import whitePiece from '../p_white.png';
+
+const socket = socketIOClient('//localhost:9000');
 
 export const directions = [
   [0, 1], [0, -1], [1, 0], [-1, 0],
@@ -33,9 +36,53 @@ export default class App extends Component {
   }
 
   componentDidMount() {
+    const gameID = this.getGameIDfromURL();
+    if (gameID !== null) this.getGame();
+    else this.newGame();
     document.addEventListener('keydown', (e) => {
+      // play a random valid move when press R key
       if (e.key.toString() === 'r') this.playRandomMove();
+      // new game when press N key
+      if (e.key.toString() === 'n') window.location.href = '.';
     });
+    socket.on('game updated', (game) => {
+      this.updateGameViaSocket(game);
+    });
+  }
+
+  getGameIDfromURL = () => {
+    const gameID = window.location.hash.slice(1);
+    if (gameID === '') return null;
+    return gameID;
+  }
+
+  getGame = () => {
+    const gameID = this.getGameIDfromURL();
+    axios.get('//localhost:9000/getGame', { params: { gameID } })
+      .then((response) => {
+        const { currentPlayer, grid } = response.data;
+        this.setState({ player: currentPlayer, grid });
+      })
+      .catch((error) => {
+        console.error('getGame', { error });
+      });
+  }
+
+  newGame = () => {
+    if (this.getGameIDfromURL()) console.log('Already a gameID but creating a new game');
+    const { player, grid, msg } = this.state;
+    axios.post('//localhost:9000/newGame', {
+      currentPlayer: player,
+      grid,
+      msg,
+    })
+      .then((response) => {
+        const { gameID } = response.data;
+        if (gameID) window.location.hash = gameID;
+      })
+      .catch((error) => {
+        console.error('newGame', { error });
+      });
   }
 
   playRandomMove = () => {
@@ -43,6 +90,15 @@ export default class App extends Component {
     const moves = this.possibleMoves(grid, player);
     const randomMove = moves[Math.floor(Math.random() * moves.length)];
     if (randomMove) this.reverseAndAddPiecesIfValid(randomMove);
+  }
+
+  updateGameViaSocket = (game) => {
+    const {
+      grid, currentPlayer, gameID, msg,
+    } = game;
+    if (gameID === this.getGameIDfromURL()) {
+      this.setState({ grid, msg, player: currentPlayer });
+    }
   }
 
   createGrid = () => {
@@ -177,10 +233,14 @@ export default class App extends Component {
   }
 
   saveGame = () => {
-    const { player, grid } = this.state;
+    const gameID = this.getGameIDfromURL();
+    if (gameID === '') console.warn('Tried to save game with no gameID');
+    const { player, grid, msg } = this.state;
     axios.post('//localhost:9000/saveGame', {
       currentPlayer: player,
       grid,
+      gameID,
+      msg,
     })
       .then((response) => {
         console.log('saveGame', { response });
@@ -216,6 +276,7 @@ export default class App extends Component {
     return (
       <div>
         <h1>Othello</h1>
+        <p><a href=".">Start a new game</a></p>
         <div style={{ display: 'flex' }}>
           <span>
 Current

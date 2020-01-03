@@ -3,9 +3,16 @@ import renderer from 'react-test-renderer';
 import React from 'react';
 import Enzyme, { shallow, mount } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
+import axios from 'axios';
 import App, { directions } from './App';
 
 Enzyme.configure({ adapter: new Adapter() });
+
+console.error = jest.fn();
+console.log = jest.fn();
+console.warn = jest.fn();
+
+jest.mock('axios');
 
 let wrapper;
 beforeEach(() => {
@@ -105,5 +112,12 @@ describe('App component', () => {
   });
   it('canPlay should return a boolean', () => {
     expect(app.canPlay(wrapper.state().grid, 1)).toBeType('boolean');
+  });
+  it('should make a post request', () => {
+    const postSpy = jest.spyOn(axios, 'post');
+    shallow(
+      <App />,
+    );
+    expect(postSpy).toBeCalled();
   });
 });
