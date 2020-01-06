@@ -52,7 +52,6 @@ export default class App extends Component {
       this.updateGameViaSocket(game);
     });
     socket.on('gameslist updated', (gamesList) => {
-      console.log('received from socket', gamesList);
       if (this.componentIsMounted) this.setState({ gamesList });
     });
     this.getGamesList();
