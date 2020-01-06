@@ -24,7 +24,6 @@ const sqlite3 = require('sqlite3').verbose();
 
 const DB_FILE = process.env.DB_FILE || 'othello.db';
 const GAMES_TABLE = process.env.GAMES_TABLE || 'games';
-const USERS_TABLE = process.env.USERS_TABLE || 'users';
 
 const db = new sqlite3.Database(path.resolve(__dirname, `./${DB_FILE}`), (err) => {
   if (err) console.log(err.message);
@@ -36,14 +35,7 @@ db.run(`CREATE TABLE IF NOT EXISTS ${GAMES_TABLE} (
   currentPlayer INTEGER,
   grid TEXT,
   gameID TEXT,
-  blackID INTEGER,
-  whiteID INTEGER,
   lastChanged INTEGER
-);
-CREATE TABLE IF NOT EXISTS ${USERS_TABLE} (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  username TEXT,
-  password TEXT
 );`);
 
 function now() {
@@ -58,9 +50,9 @@ function getGamesList(callback) {
     }
     callback(rows.map(
       ({
-        currentPlayer, grid, gameID, blackID, whiteID, lastChanged,
+        currentPlayer, grid, gameID, lastChanged,
       }) => ({
-        currentPlayer, grid: JSON.parse(grid), gameID, blackID, whiteID, lastChanged,
+        currentPlayer, grid: JSON.parse(grid), gameID, lastChanged,
       }),
     ));
   });
@@ -73,8 +65,8 @@ app.get('/getGamesList', (req, res) => {
 app.post('/newGame', (req, res) => {
   const gameID = uniqid();
   const { grid, currentPlayer } = req.body;
-  db.run(`INSERT INTO ${GAMES_TABLE} VALUES(?,?,?,?,?,?,?)`,
-    [null, currentPlayer, JSON.stringify(grid), gameID, null, null, now()], (err) => {
+  db.run(`INSERT INTO ${GAMES_TABLE} VALUES(?,?,?,?,?)`,
+    [null, currentPlayer, JSON.stringify(grid), gameID, now()], (err) => {
       if (err) {
         console.log(err.message);
       }
