@@ -19,6 +19,7 @@ const white = 2;
 export default class App extends Component {
   constructor(props) {
     super(props);
+    this.componentIsMounted = false;
     this.state = {
       grid: [
         [0, 0, 0, 0, 0, 0, 0, 0],
@@ -30,12 +31,14 @@ export default class App extends Component {
         [0, 0, 0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0, 0, 0],
       ],
+      gamesList: [],
       player: black,
       msg: '',
     };
   }
 
   componentDidMount() {
+    this.componentIsMounted = true;
     const gameID = this.getGameIDfromURL();
     if (gameID !== null) this.getGame();
     else this.newGame();
@@ -48,6 +51,27 @@ export default class App extends Component {
     socket.on('game updated', (game) => {
       this.updateGameViaSocket(game);
     });
+    socket.on('gameslist updated', (gamesList) => {
+      console.log('received from socket', gamesList);
+      if (this.componentIsMounted) this.setState({ gamesList });
+    });
+    this.getGamesList();
+  }
+
+  componentWillUnmount() {
+    this.componentIsMounted = false;
+  }
+
+  // return list of all games (in progress and ended)
+  getGamesList = () => {
+    axios.get('//localhost:9000/getGamesList', { })
+      .then((response) => {
+        const gamesList = response.data;
+        if (this.componentIsMounted) this.setState({ gamesList });
+      })
+      .catch((error) => {
+        console.error('getGamesList', { error });
+      });
   }
 
   getGameIDfromURL = () => {
@@ -61,7 +85,7 @@ export default class App extends Component {
     axios.get('//localhost:9000/getGame', { params: { gameID } })
       .then((response) => {
         const { currentPlayer, grid } = response.data;
-        this.setState({ player: currentPlayer, grid });
+        if (this.componentIsMounted) this.setState({ player: currentPlayer, grid });
       })
       .catch((error) => {
         console.error('getGame', { error });
@@ -77,7 +101,7 @@ export default class App extends Component {
       msg,
     })
       .then((response) => {
-        const { gameID } = response.data;
+        const { gameID } = response.data || {};
         if (gameID) window.location.hash = gameID;
       })
       .catch((error) => {
@@ -97,7 +121,7 @@ export default class App extends Component {
       grid, currentPlayer, gameID, msg,
     } = game;
     if (gameID === this.getGameIDfromURL()) {
-      this.setState({ grid, msg, player: currentPlayer });
+      if (this.componentIsMounted) this.setState({ grid, msg, player: currentPlayer });
     }
   }
 
@@ -191,9 +215,9 @@ export default class App extends Component {
   victoryMessage = (grid) => {
     const { scoreWhite, scoreBlack } = this.getScore(grid);
     let winner = 'Draw.';
-    if (scoreWhite > scoreBlack) winner = 'White wins!';
-    if (scoreWhite < scoreBlack) winner = 'Black wins!';
-    return `End of game. ${winner}`;
+    if (scoreWhite > scoreBlack) winner = 'White won!';
+    if (scoreWhite < scoreBlack) winner = 'Black won!';
+    return winner;
   }
 
   getScore = (grid) => {
@@ -208,33 +232,46 @@ export default class App extends Component {
     return { scoreWhite, scoreBlack };
   }
 
-
-  reverseAndAddPiecesIfValid = (coord) => {
-    const { grid } = this.state;
-    let { player } = this.state;
+  checkVictoryAndSaveGame = (grid, player) => {
     let msg = '';
-    const toChange = this.toBeChangedAllDirections(grid, player, coord);
-    if (toChange.length > 0) {
-      // Play the given move
-      toChange.forEach(([y, x]) => { grid[y][x] = player; });
-      player = this.getOpponent(player);
-      // Check that the opponent can play
-      if (!this.canPlay(grid, player)) {
-        msg = `${this.playerName(player)} cannot play, skipping turn...`;
-        player = this.getOpponent(player);
-      }
-      // Check victory
-      if (this.gameEnded(grid)) msg = this.victoryMessage(grid);
-      // Save new state
-      this.setState({ grid, player, msg }, () => {
+    if (!this.canPlay(grid, player)) {
+      msg = `${this.playerName(player)} cannot play and needs to skip their turn`;
+    }
+    if (this.gameEnded(grid)) msg = `Game ended. ${this.victoryMessage(grid)}`;
+    // Save new state, and then save to server
+    if (this.componentIsMounted) {
+      this.setState({ grid, msg, player }, () => {
         this.saveGame();
       });
     }
   }
 
+  skipAndSaveGame = () => {
+    const { grid } = this.state;
+    let { player } = this.state;
+    if (this.canPlay(grid, player)) {
+      console.warn('Trying to skip but a move is available');
+    } else {
+      player = this.getOpponent(player);
+      this.checkVictoryAndSaveGame(grid, player);
+    }
+  }
+
+  reverseAndAddPiecesIfValid = (coord) => {
+    const { grid } = this.state;
+    let { player } = this.state;
+    const toChange = this.toBeChangedAllDirections(grid, player, coord);
+    if (toChange.length > 0) {
+      // Play the given move
+      toChange.forEach(([y, x]) => { grid[y][x] = player; });
+      player = this.getOpponent(player);
+      this.checkVictoryAndSaveGame(grid, player);
+    }
+  }
+
   saveGame = () => {
     const gameID = this.getGameIDfromURL();
-    if (gameID === '') console.warn('Tried to save game with no gameID');
+    if (gameID === null) console.warn('Tried to save game with no gameID');
     const { player, grid, msg } = this.state;
     axios.post('//localhost:9000/saveGame', {
       currentPlayer: player,
@@ -270,37 +307,98 @@ export default class App extends Component {
 
   playerName = (num) => (num === 1 ? 'BLACK' : 'WHITE')
 
-  render() {
-    const { msg, grid, player } = this.state;
+  stringOfInProgressGame = ({ currentPlayer }) => `${this.playerName(currentPlayer).toLowerCase()}'s turn`;
+
+  stringOfEndedGame = ({ grid }) => {
     const { scoreWhite, scoreBlack } = this.getScore(grid);
+    return `${this.victoryMessage(grid)} (black: ${scoreBlack} white: ${scoreWhite})`;
+  }
+
+  render() {
+    const {
+      msg, grid, player, gamesList,
+    } = this.state;
+    gamesList.sort((game1, game2) => game2.lastChanged - game1.lastChanged);
+    const gamesEnded = gamesList.filter(({ grid: g }) => this.gameEnded(g));
+    const gamesInProgress = gamesList.filter(({ grid: g }) => !this.gameEnded(g));
+    const { scoreWhite, scoreBlack } = this.getScore(grid);
+    const disableSkip = this.canPlay(grid, player) || this.gameEnded(grid);
     return (
       <div>
-        <h1>Othello</h1>
+        <h1 className="title">Othello</h1>
         <p><a href=".">Start a new game</a></p>
-        <div style={{ display: 'flex' }}>
-          <span>
+        <div className="currentPlayerAndSkipBtn">
+          <div className="playerName">
+            <span>
 Current
-            {' '}
+              {' '}
 player:
-            {' '}
-            {this.playerName(player)}
-          </span>
-          <span style={{ marginLeft: '.5rem' }}>
-            {this.playerName(player) === 'BLACK' ? <img alt="black piece" height="20px" width="20px" src={blackPiece} />
-              : <img alt="black piece" height="20px" width="20px" src={whitePiece} />}
-          </span>
+              {' '}
+              {this.playerName(player)}
+            </span>
+            <span style={{ marginLeft: '.5rem' }}>
+              {this.playerName(player) === 'BLACK' ? <img alt="black piece" height="20px" width="20px" src={blackPiece} />
+                : <img alt="black piece" height="20px" width="20px" src={whitePiece} />}
+            </span>
+          </div>
+          <button type="button" className="skipBtn" onClick={this.skipAndSaveGame} disabled={disableSkip}>Skip</button>
         </div>
-        {this.createGrid()}
-        <p>
+        <div>
+          <section>{this.createGrid()}</section>
+          <div>
+            <p>
           Black:
-          {' '}
-          {scoreBlack}
-          {' '}
+              {' '}
+              {scoreBlack}
+              {' '}
           White:
-          {' '}
-          {scoreWhite}
-        </p>
-        <p className="message">{msg}</p>
+              {' '}
+              {scoreWhite}
+            </p>
+            <p className="message">{msg}</p>
+          </div>
+          <section>
+            <h2>Games in progress</h2>
+            <div className="gamesList">
+              <ul>
+                { gamesInProgress.length === 0
+                  ? 'No game in progress'
+                  : gamesInProgress.map(({ gameID, ...game }) => (
+                    <li key={gameID}>
+                      <a href={`./#${gameID}`} onClick={() => { window.setTimeout(() => { this.getGame(); }, 100); }}>
+  Game
+                        {' '}
+                      #
+                        {gameID}
+                        {' '}
+                        { this.stringOfInProgressGame(game)}
+                      </a>
+                    </li>
+                  ))}
+              </ul>
+            </div>
+            <h2>Ended games</h2>
+            <div className="gamesList">
+              <ul>
+                { gamesEnded.length === 0
+                  ? 'No ended game'
+                  : gamesEnded.map(({ gameID, ...game }) => (
+                    <li key={gameID}>
+                      <a href={`./#${gameID}`} onClick={() => { window.setTimeout(() => { this.getGamesList(); this.getGame(); }, 100); }}>
+  Game
+                        {' '}
+                      #
+                        {gameID}
+                        {' '}
+                        { this.stringOfEndedGame(game) }
+                      </a>
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          </section>
+        </div>
+
       </div>
     );
   }

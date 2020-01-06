@@ -32,3 +32,33 @@ h1{
   width: 0.8rem;
   border-radius: 2rem; 
 }
+
+.currentPlayerAndSkipBtn{
+  display: flex;
+  justify-content: space-between;
+  max-width: 28rem;
+  margin: 2rem 0 0.5rem 0;
+}
+
+.message{
+  height: 1rem;
+}
+
+.title{
+  font-size: 2.5rem;
+}
+
+.skipBtn{
+  width: 5rem; 
+  height: 2rem; 
+  font-size: 1rem; 
+}
+
+.gamesList{
+  overflow: auto;
+  max-height: 15rem
+}
+
+.playerName{
+  display: flex;
+}

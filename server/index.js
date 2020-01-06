@@ -23,28 +23,62 @@ const open = require('open');
 const sqlite3 = require('sqlite3').verbose();
 
 const DB_FILE = process.env.DB_FILE || 'othello.db';
-const DB_TABLE = process.env.DB_TABLE || 'games';
+const GAMES_TABLE = process.env.GAMES_TABLE || 'games';
+const USERS_TABLE = process.env.USERS_TABLE || 'users';
 
 const db = new sqlite3.Database(path.resolve(__dirname, `./${DB_FILE}`), (err) => {
   if (err) console.log(err.message);
   else console.log('Connected to the Othello database');
 });
 
-db.run(`CREATE TABLE IF NOT EXISTS ${DB_TABLE} (
+db.run(`CREATE TABLE IF NOT EXISTS ${GAMES_TABLE} (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   currentPlayer INTEGER,
   grid TEXT,
-  gameID TEXT
+  gameID TEXT,
+  blackID INTEGER,
+  whiteID INTEGER,
+  lastChanged INTEGER
+);
+CREATE TABLE IF NOT EXISTS ${USERS_TABLE} (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  username TEXT,
+  password TEXT
 );`);
+
+function now() {
+  return Math.floor((new Date()).getTime() / 1000);
+}
+
+// get the games list from the database and returns it with the grid JSON-parsed for each game
+function getGamesList(callback) {
+  db.all(`SELECT * from ${GAMES_TABLE}`, (err, rows) => {
+    if (err) {
+      console.log(err.message);
+    }
+    callback(rows.map(
+      ({
+        currentPlayer, grid, gameID, blackID, whiteID, lastChanged,
+      }) => ({
+        currentPlayer, grid: JSON.parse(grid), gameID, blackID, whiteID, lastChanged,
+      }),
+    ));
+  });
+}
+
+app.get('/getGamesList', (req, res) => {
+  getGamesList((gamesList) => res.send(gamesList));
+});
 
 app.post('/newGame', (req, res) => {
   const gameID = uniqid();
   const { grid, currentPlayer } = req.body;
-  db.run(`INSERT INTO ${DB_TABLE} VALUES(?,?,?,?)`,
-    [null, currentPlayer, JSON.stringify(grid), gameID], (err) => {
+  db.run(`INSERT INTO ${GAMES_TABLE} VALUES(?,?,?,?,?,?,?)`,
+    [null, currentPlayer, JSON.stringify(grid), gameID, null, null, now()], (err) => {
       if (err) {
         console.log(err.message);
       }
+      getGamesList((gamesList) => io.emit('gameslist updated', gamesList));
       res.send({ gameID });
     });
 });
@@ -53,15 +87,16 @@ app.post('/saveGame', (req, res) => {
   const {
     grid, currentPlayer, gameID, msg,
   } = req.body;
-  db.run(`UPDATE ${DB_TABLE} SET currentPlayer=${currentPlayer}, grid="${JSON.stringify(grid)}" WHERE gameID = "${gameID}"`, function (err) {
+  db.run(`UPDATE ${GAMES_TABLE} SET currentPlayer=${currentPlayer}, grid="${JSON.stringify(grid)}", lastChanged="${now()}" WHERE gameID = "${gameID}"`, function (err) {
     if (err) {
       console.log(err.message);
     }
     if (this.changes) {
-      res.send('A row has been updated');
+      getGamesList((gamesList) => io.emit('gameslist updated', gamesList));
       io.emit('game updated', {
         grid, currentPlayer, gameID, msg,
       });
+      res.send('A row has been updated');
     } else {
       res.send('GameID not found');
     }
@@ -70,7 +105,7 @@ app.post('/saveGame', (req, res) => {
 
 app.get('/getGame', (req, res) => {
   const { gameID } = req.query;
-  db.each(`SELECT * from ${DB_TABLE} WHERE gameID = "${gameID}"`, (err, row) => {
+  db.each(`SELECT * from ${GAMES_TABLE} WHERE gameID = "${gameID}"`, (err, row) => {
     if (err) {
       console.log(err.message);
     }

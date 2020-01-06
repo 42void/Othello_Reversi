@@ -29,6 +29,114 @@ test('directions values', () => {
   expect(directions.toString()).toContain(values);
 });
 
+const initialGrid = [
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 2, 1, 0, 0, 0],
+  [0, 0, 0, 1, 2, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+];
+
+const blackWins = [
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 1, 1, 0, 0, 0],
+  [0, 0, 1, 1, 1, 1, 0, 0],
+  [0, 0, 0, 0, 1, 1, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+];
+
+const whiteWins = [
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 2, 2, 0, 0, 0],
+  [0, 0, 2, 2, 2, 2, 0, 0],
+  [0, 0, 0, 0, 2, 2, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+];
+
+const nobodyWins = [
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 2, 2, 0, 1, 1],
+  [0, 0, 0, 2, 2, 0, 1, 1],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+];
+
+const whiteCannotPlay = [
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [2, 0, 0, 0, 0, 0, 0, 0],
+  [2, 0, 0, 0, 0, 0, 0, 0],
+  [2, 0, 0, 0, 0, 0, 0, 0],
+  [2, 0, 0, 0, 0, 0, 0, 0],
+  [1, 0, 0, 0, 0, 0, 0, 0],
+];
+
+// different games that can appear in the array returned by getGamesList
+const mockGameId = '981bs81mockGameID';
+const initialGame = {
+  id: 0,
+  currentPlayer: 1,
+  grid: initialGrid,
+  gameID: mockGameId,
+  blackID: null,
+  whiteID: null,
+  lastChanged: 1570000000,
+};
+
+const blackWinsGame = {
+  id: 1,
+  currentPlayer: 1,
+  grid: blackWins,
+  gameID: '111231mockGameID',
+  blackID: null,
+  whiteID: null,
+  lastChanged: 1570000001,
+};
+
+const nobodyWinsGame = {
+  id: 2,
+  currentPlayer: 1,
+  grid: nobodyWins,
+  gameID: '0000121mockGameID',
+  blackID: null,
+  whiteID: null,
+  lastChanged: 1570000002,
+};
+
+const whiteCannotPlayGame = {
+  id: 3,
+  currentPlayer: 3,
+  grid: whiteCannotPlay,
+  gameID: '22222mockGameID',
+  blackID: null,
+  whiteID: null,
+  lastChanged: 1570000003,
+};
+
+const whiteWinsGame = {
+  id: 4,
+  currentPlayer: 1,
+  grid: whiteWins,
+  gameID: '2223a9881n1mockGameID',
+  blackID: null,
+  whiteID: null,
+  lastChanged: 1570000004,
+};
+
+
 expect.extend({
   toBeType(received, argument) {
     const initialType = typeof received;
@@ -52,18 +160,82 @@ expect.extend({
   },
 });
 
-test('initial state', async () => {
-  expect(wrapper.state().player).toEqual(1);
-  expect(wrapper.state().grid).toEqual([
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 2, 1, 0, 0, 0],
-    [0, 0, 0, 1, 2, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-  ]);
+describe('Game logic', () => {
+  const app = new App();
+
+  it('getOpponent should return opponent of type number', () => {
+    expect(app.getOpponent(1)).toEqual(2);
+    expect(app.getOpponent(2)).toEqual(1);
+    expect(app.getOpponent(2)).toBeType('number');
+  });
+  it('inGrid should return false of type boolean if not in grid', () => {
+    expect(app.inGrid(8, 8)).toBeType('boolean');
+    expect(app.inGrid(0, 0)).toEqual(true);
+    expect(app.inGrid(7, 7)).toEqual(true);
+    expect(app.inGrid(4, 8)).toEqual(false);
+    expect(app.inGrid(-1, 4)).toEqual(false);
+    expect(app.inGrid(4, -1)).toEqual(false);
+    expect(app.inGrid(8, 8)).toEqual(false);
+    expect(app.inGrid(8, 4)).toEqual(false);
+    expect(app.inGrid(4, 8)).toEqual(false);
+  });
+  it('canPlay should return a correct boolean', () => {
+    expect(app.canPlay(initialGrid, 1)).toBeType('boolean');
+    expect(app.canPlay(initialGrid, 1)).toBe(true);
+    expect(app.canPlay(initialGrid, 2)).toBe(true);
+    expect(app.canPlay(blackWins, 1)).toBe(false);
+    expect(app.canPlay(blackWins, 2)).toBe(false);
+    expect(app.canPlay(whiteWins, 1)).toBe(false);
+    expect(app.canPlay(whiteWins, 2)).toBe(false);
+    expect(app.canPlay(nobodyWins, 1)).toBe(false);
+    expect(app.canPlay(nobodyWins, 2)).toBe(false);
+    expect(app.canPlay(whiteCannotPlay, 1)).toBe(true);
+    expect(app.canPlay(whiteCannotPlay, 2)).toBe(false);
+  });
+  it('victoryMessage should return a correct string', () => {
+    expect(app.victoryMessage(initialGrid)).toBeType('string');
+    expect(app.victoryMessage(blackWins)).toMatch(/black/i);
+    expect(app.victoryMessage(whiteWins)).toMatch(/white/i);
+    expect(app.victoryMessage(nobodyWins)).toMatch(/draw/i);
+  });
+  it('getScore should return a correct object', () => {
+    expect(app.getScore(initialGrid)).toBeType('object');
+    expect(app.getScore(initialGrid)).toEqual({ scoreWhite: 2, scoreBlack: 2 });
+    expect(app.getScore(nobodyWins)).toEqual({ scoreWhite: 4, scoreBlack: 4 });
+    expect(app.getScore(blackWins)).toEqual({ scoreWhite: 0, scoreBlack: 8 });
+    expect(app.getScore(whiteWins)).toEqual({ scoreWhite: 8, scoreBlack: 0 });
+  });
+  it('gameEnded should return a correct boolean', () => {
+    expect(app.gameEnded(initialGrid)).toBeType('boolean');
+    expect(app.gameEnded(initialGrid)).toBe(false);
+    expect(app.gameEnded(blackWins)).toBe(true);
+    expect(app.gameEnded(whiteWins)).toBe(true);
+    expect(app.gameEnded(nobodyWins)).toBe(true);
+    expect(app.gameEnded(whiteCannotPlay)).toBe(false);
+  });
+  it('possibleMoves should return a correct array', () => {
+    expect(app.possibleMoves(initialGrid, 1)).toBeType('array');
+    expect(app.possibleMoves(initialGrid, 1)).toHaveLength(4);
+    expect(app.possibleMoves(initialGrid, 2)).toHaveLength(4);
+    expect(app.possibleMoves(blackWins, 2)).toHaveLength(0);
+    expect(app.possibleMoves(whiteWins, 2)).toHaveLength(0);
+    expect(app.possibleMoves(nobodyWins, 2)).toHaveLength(0);
+    expect(app.possibleMoves(whiteCannotPlay, 1)).toHaveLength(1);
+    expect(app.possibleMoves(whiteCannotPlay, 2)).toHaveLength(0);
+  });
+  it('playerName should be the correct string', () => {
+    expect(app.playerName(1)).toMatch(/black/i);
+    expect(app.playerName(2)).toMatch(/white/i);
+  });
+  it('stringOfInProgressGame should be a correct string', () => {
+    expect(app.stringOfInProgressGame(initialGame)).toMatch(/black.s.turn/i);
+    expect(app.stringOfInProgressGame(whiteCannotPlayGame)).toMatch(/white.s.turn/i);
+  });
+  it('stringOfEndedGame should be a correct string', () => {
+    expect(app.stringOfEndedGame(blackWinsGame)).toMatch(/black won/i);
+    expect(app.stringOfEndedGame(whiteWinsGame)).toMatch(/white won/i);
+    expect(app.stringOfEndedGame(nobodyWinsGame)).toMatch(/draw/i);
+  });
 });
 
 describe('App component', () => {
@@ -97,32 +269,18 @@ describe('App component', () => {
 
     fn.mockClear();
   });
-  it('getOpponent should return opponent of type number', () => {
-    expect(app.getOpponent(1)).toEqual(2);
-    expect(app.getOpponent(2)).toEqual(1);
-    expect(app.getOpponent(2)).toBeType('number');
-  });
-  it('inGrid should return false of type boolean if not in grid', () => {
-    expect(app.inGrid(8, 8)).toBeType('boolean');
-    expect(app.inGrid(0, 0)).toEqual(true);
-    expect(app.inGrid(7, 7)).toEqual(true);
-    expect(app.inGrid(4, 8)).toEqual(false);
-    expect(app.inGrid(-1, 4)).toEqual(false);
-    expect(app.inGrid(4, -1)).toEqual(false);
-    expect(app.inGrid(8, 8)).toEqual(false);
-  });
   it('createGrid should return a array', () => {
     expect(app.createGrid()).toBeType('array');
   });
-  it('canPlay should return a boolean', () => {
-    expect(app.canPlay(wrapper.state().grid, 1)).toBeType('boolean');
+  it('saveGame should make a post request', () => {
+    const postSpy = jest.spyOn(axios, 'post');
+    app.saveGame();
+    expect(postSpy).toBeCalledTimes(1);
   });
-  it('victoryMessage should return a string', () => {
-    expect(app.victoryMessage(wrapper.state().grid)).toBeType('string');
-  });
-  it('getScore should return a object', () => {
-    expect(app.getScore(wrapper.state().grid)).toBeType('object');
-    expect(app.getScore(wrapper.state().grid)).toEqual({ scoreWhite: 2, scoreBlack: 2 });
+  it('checkVictoryAndSaveGame should make a post request', () => {
+    const postSpy = jest.spyOn(axios, 'post');
+    app.checkVictoryAndSaveGame(initialGrid, 1);
+    expect(postSpy).toBeCalled();
   });
   it('should make a post request', () => {
     const postSpy = jest.spyOn(axios, 'post');
@@ -131,10 +289,85 @@ describe('App component', () => {
     );
     expect(postSpy).toBeCalled();
   });
-  it('should display the message in corresponding <p> if state.msg contains a message', () => {
+  it('playRandomMove should make a post request', async () => {
+    const postSpy = jest.spyOn(axios, 'post');
+    app.playRandomMove();
+    expect(postSpy).toBeCalled();
+  });
+  it('the msg in the state should be displayed in corresponding tag', () => {
     const appComponent = shallow(<App />);
-    appComponent.setState({ msg: 'HEY' });
-    expect(appComponent.containsMatchingElement(<p className="message">HEY</p>)).toEqual(true);
+    appComponent.setState({ msg: 'TESTINGSTRING18471b2' });
+    expect(appComponent.containsMatchingElement(<p className="message">TESTINGSTRING18471b2</p>)).toEqual(true);
+  });
+  it('the current player should be displayed', () => {
+    const appComponent = shallow(<App />);
+    appComponent.setState({ player: 1 });
+    expect(appComponent.text()).not.toMatch(/WHITE/);
+    expect(appComponent.text()).toMatch(/BLACK/);
+    appComponent.setState({ player: 2 });
+    expect(appComponent.text()).toMatch(/WHITE/);
+    expect(appComponent.text()).not.toMatch(/BLACK/);
+  });
+  it('the gamesList should be displayed', () => {
+    const appComponent = shallow(<App />);
+    appComponent.setState({ gamesList: [] });
+    expect(appComponent.text()).toMatch(/no ended game/i);
+    expect(appComponent.text()).toMatch(/no game in progress/i);
+    expect(appComponent.text()).not.toMatch(/white.s.turn/i);
+    expect(appComponent.text()).not.toMatch(/black.s.turn/i);
+    expect(appComponent.text()).not.toMatch(/black won/i);
+    expect(appComponent.text()).not.toMatch(/white won/i);
+    expect(appComponent.text()).not.toMatch(/draw/i);
+    appComponent.setState({ gamesList: [initialGame] });
+    expect(appComponent.text()).toMatch(/no ended game/i);
+    expect(appComponent.text()).not.toMatch(/no game in progress/i);
+    expect(appComponent.text()).not.toMatch(/white.s.turn/i);
+    expect(appComponent.text()).toMatch(/black.s.turn/i);
+    expect(appComponent.text()).not.toMatch(/black won/i);
+    expect(appComponent.text()).not.toMatch(/white won/i);
+    expect(appComponent.text()).not.toMatch(/draw/i);
+    appComponent.setState({ gamesList: [whiteCannotPlayGame] });
+    expect(appComponent.text()).toMatch(/no ended game/i);
+    expect(appComponent.text()).not.toMatch(/no game in progress/i);
+    expect(appComponent.text()).toMatch(/white.s.turn/i);
+    expect(appComponent.text()).not.toMatch(/black.s.turn/i);
+    expect(appComponent.text()).not.toMatch(/black won/i);
+    expect(appComponent.text()).not.toMatch(/white won/i);
+    expect(appComponent.text()).not.toMatch(/draw/i);
+    appComponent.setState({ gamesList: [blackWinsGame] });
+    expect(appComponent.text()).not.toMatch(/no ended game/i);
+    expect(appComponent.text()).toMatch(/no game in progress/i);
+    expect(appComponent.text()).not.toMatch(/white.s.turn/i);
+    expect(appComponent.text()).not.toMatch(/black.s.turn/i);
+    expect(appComponent.text()).toMatch(/black won/i);
+    expect(appComponent.text()).not.toMatch(/white won/i);
+    expect(appComponent.text()).not.toMatch(/draw/i);
+    appComponent.setState({ gamesList: [whiteWinsGame] });
+    expect(appComponent.text()).not.toMatch(/no ended game/i);
+    expect(appComponent.text()).toMatch(/no game in progress/i);
+    expect(appComponent.text()).not.toMatch(/white.s.turn/i);
+    expect(appComponent.text()).not.toMatch(/black.s.turn/i);
+    expect(appComponent.text()).not.toMatch(/black won/i);
+    expect(appComponent.text()).toMatch(/white won/i);
+    expect(appComponent.text()).not.toMatch(/draw/i);
+    appComponent.setState({ gamesList: [nobodyWinsGame] });
+    expect(appComponent.text()).not.toMatch(/no ended game/i);
+    expect(appComponent.text()).toMatch(/no game in progress/i);
+    expect(appComponent.text()).not.toMatch(/white.s.turn/i);
+    expect(appComponent.text()).not.toMatch(/black.s.turn/i);
+    expect(appComponent.text()).not.toMatch(/black won/i);
+    expect(appComponent.text()).not.toMatch(/white won/i);
+    expect(appComponent.text()).toMatch(/draw/i);
+    appComponent.setState({
+      gamesList: [initialGame, whiteCannotPlayGame, blackWinsGame, whiteWinsGame, nobodyWinsGame],
+    });
+    expect(appComponent.text()).not.toMatch(/no ended game/i);
+    expect(appComponent.text()).not.toMatch(/no game in progress/i);
+    expect(appComponent.text()).toMatch(/white.s.turn/i);
+    expect(appComponent.text()).toMatch(/black.s.turn/i);
+    expect(appComponent.text()).toMatch(/black won/i);
+    expect(appComponent.text()).toMatch(/white won/i);
+    expect(appComponent.text()).toMatch(/draw/i);
   });
 });
 
